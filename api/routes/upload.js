@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const parser = require('../utils/parser');
 const { upload, handleUploadError } = require('../middleware/upload');
 
@@ -12,11 +10,8 @@ router.post('/', upload.single('file'), handleUploadError, async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const filePath = req.file.path;
-    const questions = await parser.parseFile(filePath);
-    
-    // Clean up uploaded file after parsing
-    fs.unlinkSync(filePath);
+    // Parse file from memory buffer
+    const questions = await parser.parseFile(req.file.buffer, req.file.originalname);
     
     res.json({
       success: true,
@@ -25,11 +20,6 @@ router.post('/', upload.single('file'), handleUploadError, async (req, res) => {
     });
   } catch (error) {
     console.error('Upload error:', error);
-    
-    // Clean up file if it exists
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     
     res.status(500).json({ 
       error: error.message || 'Failed to process file' 
