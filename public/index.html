@@ -1,1 +1,527 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soal to Google Form</title>
+    <meta name="description" content="Upload file soal dan push ke Google Form secara otomatis">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind configuration
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        success: '#10b981',
+                        error: '#ef4444',
+                        warning: '#f59e0b',
+                    },
+                    screens: {
+                        'xs': '475px',
+                        'sm': '640px',
+                        'md': '768px',
+                        'lg': '1024px',
+                        'xl': '1280px',
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4 sm:py-5 md:py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Soal to Google Form</h1>
+                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">Upload file soal dan push ke Google Form secara otomatis</p>
+                </div>
+                <div class="hidden sm:block">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <i class="fas fa-check-circle mr-1"></i> Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
 
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <div class="container mx-auto px-4 py-6 sm:py-8 md:py-10">
+            <!-- Notification Container -->
+            <div id="notification-container" class="fixed top-20 right-4 z-50 space-y-2 max-w-xs sm:max-w-md"></div>
+
+            <!-- Upload Section -->
+            <div class="section-card bg-white dark:bg-gray-800 rounded-xl shadow-md mb-6 sm:mb-8">
+                <h2 class="text-lg sm:text-xl md:text-2xl font-medium text-gray-900 dark:text-white mb-4 sm:mb-5">
+                    <i class="fas fa-upload mr-2 text-primary"></i>Upload File Soal
+                </h2>
+                
+                <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 sm:p-8 md:p-10 text-center cursor-pointer bg-gray-50 dark:bg-gray-700">
+                    <div class="flex flex-col items-center justify-center">
+                        <i class="fas fa-cloud-upload-alt text-4xl sm:text-5xl md:text-6xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                        <p class="text-base sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-2">Drag & drop file soal Anda di sini</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">atau</p>
+                        <label for="file-upload" class="btn px-4 sm:px-6 py-2 sm:py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition cursor-pointer inline-flex items-center">
+                            <i class="fas fa-folder-open mr-2"></i>Pilih File
+                        </label>
+                        <input id="file-upload" type="file" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">Format yang didukung: PDF, Word, TXT (max 10MB)</p>
+                    </div>
+                </div>
+
+                <div id="file-info" class="mt-4 hidden">
+                    <div class="flex items-center justify-between bg-blue-50 dark:bg-blue-900 p-3 sm:p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt text-primary mr-3 text-lg"></i>
+                            <div>
+                                <p id="file-name" class="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px] sm:max-w-xs md:max-w-md"></p>
+                                <p id="file-size" class="text-xs text-gray-600 dark:text-gray-300"></p>
+                            </div>
+                        </div>
+                        <button id="remove-file" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="section-card bg-white dark:bg-gray-800 rounded-xl shadow-md mb-6 sm:mb-8">
+                <h2 class="text-lg sm:text-xl md:text-2xl font-medium text-gray-900 dark:text-white mb-4 sm:mb-5">
+                    <i class="fas fa-cog mr-2 text-primary"></i>Pengaturan
+                </h2>
+                
+                <div class="space-y-4 sm:space-y-5">
+                    <div>
+                        <label for="form-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Google Form URL atau ID <span class="text-error">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="form-id" class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Contoh: https://forms.gle/abc123 atau 1FAIpQLSf9f1...">
+                            <button id="help-button" class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <i class="fas fa-question-circle text-lg"></i>
+                            </button>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Masukkan URL lengkap Google Form atau hanya ID-nya</p>
+                        <details class="mt-3">
+                            <summary class="text-xs text-primary cursor-pointer font-medium">Contoh format yang valid</summary>
+                            <ul class="mt-2 text-xs text-gray-600 dark:text-gray-400 list-disc pl-5 space-y-1 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                                <li>https://docs.google.com/forms/d/e/1FAIpQLSf9f1/viewform</li>
+                                <li>https://forms.gle/abc123def456</li>
+                                <li>1FAIpQLSf9f1</li>
+                            </ul>
+                        </details>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Format Jawaban <span class="text-error">*</span>
+                        </label>
+                        <div class="flex flex-wrap gap-4 sm:gap-6">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="answer-format" value="a-d" class="h-4 w-4 text-primary focus:ring-primary" checked>
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">A - D</span>
+                            </label>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="answer-format" value="a-e" class="h-4 w-4 text-primary focus:ring-primary">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">A - E</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parsing Preview Section -->
+            <div id="preview-section" class="section-card bg-white dark:bg-gray-800 rounded-xl shadow-md mb-6 sm:mb-8 hidden">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-5">
+                    <h2 class="text-lg sm:text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
+                        <i class="fas fa-eye mr-2 text-primary"></i>Preview Soal
+                    </h2>
+                    <div class="flex items-center mt-2 sm:mt-0">
+                        <span class="text-sm text-gray-600 dark:text-gray-300 mr-3">Total: <span id="question-count" class="font-medium text-primary">0</span> soal</span>
+                        <button id="parse-button" class="btn px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition flex items-center">
+                            <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>Parse Ulang
+                        </button>
+                    </div>
+                </div>
+                <div id="preview-container" class="preview-container border border-gray-200 dark:border-gray-600 rounded-lg p-4 sm:p-5 overflow-y-auto bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300">
+                    <!-- Preview content will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Submit Section -->
+            <div class="section-card bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                <button id="submit-button" class="w-full py-3 sm:py-4 px-4 bg-success text-white font-medium rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    <span>Push Soal ke Google Form</span>
+                </button>
+                
+                <div id="progress-container" class="mt-4 hidden">
+                    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+                        <span>Memproses...</span>
+                        <span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                        <div id="progress-bar" class="progress-bar bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-status" class="mt-2 text-sm text-gray-600 dark:text-gray-300">Memulai proses...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+        <div class="container mx-auto px-4 py-6 sm:py-8">
+            <div class="flex flex-col items-center">
+                <div class="flex space-x-6 sm:space-x-8 mb-4">
+                    <a href="mailto:example@email.com" class="footer-icon text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" title="Email">
+                        <i class="fas fa-envelope text-xl sm:text-2xl"></i>
+                    </a>
+                    <a href="https://wa.me/6281234567890" target="_blank" class="footer-icon text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400" title="WhatsApp">
+                        <i class="fab fa-whatsapp text-xl sm:text-2xl"></i>
+                    </a>
+                    <a href="https://facebook.com/example" target="_blank" class="footer-icon text-gray-500 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-300" title="Facebook">
+                        <i class="fab fa-facebook text-xl sm:text-2xl"></i>
+                    </a>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">© 2023 Soal to Google Form. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-upload');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const removeFileBtn = document.getElementById('remove-file');
+        const formIdInput = document.getElementById('form-id');
+        const helpButton = document.getElementById('help-button');
+        const previewSection = document.getElementById('preview-section');
+        const questionCount = document.getElementById('question-count');
+        const previewContainer = document.getElementById('preview-container');
+        const parseButton = document.getElementById('parse-button');
+        const submitButton = document.getElementById('submit-button');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const progressStatus = document.getElementById('progress-status');
+        const notificationContainer = document.getElementById('notification-container');
+
+        let selectedFile = null;
+        let parsedQuestions = [];
+
+        // Fungsi untuk mengekstrak Form ID dari URL
+        function extractFormIdFromUrl(url) {
+            // Pola regex untuk mengekstrak Form ID dari URL Google Form
+            const patterns = [
+                /\/forms\/d\/e\/([a-zA-Z0-9_-]+)/,
+                /\/forms\/d\/([a-zA-Z0-9_-]+)/,
+                /\/forms\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/,
+                /forms\.gle\/([a-zA-Z0-9_-]+)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            
+            // Jika tidak cocok dengan pola, cek apakah input sudah berupa Form ID
+            if (/^[a-zA-Z0-9_-]+$/.test(url)) {
+                return url;
+            }
+            
+            return null;
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Validasi real-time untuk Form ID
+        formIdInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            const formId = extractFormIdFromUrl(value);
+            
+            if (value && !formId) {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300', 'dark:border-gray-600');
+            } else {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300', 'dark:border-gray-600');
+            }
+        });
+
+        // Event listener untuk tombol bantuan
+        helpButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            showNotification('info', 'Anda bisa memasukkan URL lengkap Google Form atau hanya ID-nya. Sistem akan secara otomatis mengekstrak ID dari URL yang Anda masukkan.');
+        });
+
+        // File Upload Handling
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                handleFileSelection(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFileSelection(e.target.files[0]);
+            }
+        });
+        
+        removeFileBtn.addEventListener('click', () => {
+            resetFileSelection();
+        });
+        
+        function handleFileSelection(file) {
+            const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+            
+            if (!validTypes.includes(file.type)) {
+                showNotification('error', 'Format file tidak didukung. Silakan pilih file PDF, Word, atau TXT.');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) { // 10MB
+                showNotification('error', 'Ukuran file terlalu besar. Maksimal 10MB.');
+                return;
+            }
+            
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('hidden');
+            
+            // Parse the file
+            parseFile();
+        }
+        
+        function resetFileSelection() {
+            selectedFile = null;
+            parsedQuestions = [];
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+            previewSection.classList.add('hidden');
+        }
+        
+        async function parseFile() {
+            if (!selectedFile) return;
+            
+            showNotification('info', 'Memproses file...');
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    parsedQuestions = data.questions;
+                    displayPreview(parsedQuestions);
+                    showNotification('success', 'File berhasil diproses!');
+                } else {
+                    showNotification('error', data.error || 'Gagal memproses file.');
+                }
+            } catch (error) {
+                console.error('Parse error:', error);
+                showNotification('error', 'Terjadi kesalahan saat memproses file.');
+            }
+        }
+        
+        function displayPreview(questions) {
+            questionCount.textContent = data.count;
+            previewContainer.textContent = questions.join('\n');
+            previewSection.classList.remove('hidden');
+        }
+        
+        parseButton.addEventListener('click', () => {
+            if (selectedFile) {
+                parseFile();
+            }
+        });
+        
+        // Submit Handling
+        submitButton.addEventListener('click', async () => {
+            if (!selectedFile) {
+                showNotification('error', 'Silakan pilih file soal terlebih dahulu.');
+                return;
+            }
+            
+            const formInputValue = formIdInput.value.trim();
+            const formId = extractFormIdFromUrl(formInputValue);
+            
+            if (!formId) {
+                showNotification('error', 'Format Google Form URL atau ID tidak valid. Silakan periksa kembali.', true);
+                return;
+            }
+            
+            // Update input field dengan Form ID yang sudah diekstrak
+            formIdInput.value = formId;
+            
+            if (parsedQuestions.length === 0) {
+                showNotification('error', 'Tidak ada soal yang terdeteksi. Silakan upload ulang file.');
+                return;
+            }
+            
+            // Get answer format
+            const answerFormat = document.querySelector('input[name="answer-format"]:checked').value;
+            
+            // Show progress
+            progressContainer.classList.remove('hidden');
+            submitButton.disabled = true;
+            
+            try {
+                const response = await fetch('/api/forms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        formId: formId,
+                        questions: parsedQuestions,
+                        answerFormat
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Simulate progress completion
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                    progressPercentage.textContent = `${progress}%`;
+                    
+                    if (progress <= 30) {
+                        progressStatus.textContent = 'Menghubungkan ke Google Form...';
+                    } else if (progress <= 60) {
+                        progressStatus.textContent = 'Memvalidasi data...';
+                    } else if (progress <= 90) {
+                        progressStatus.textContent = 'Mengirim soal...';
+                    } else {
+                        clearInterval(interval);
+                        
+                        if (data.success) {
+                            progressStatus.textContent = 'Proses selesai!';
+                            showNotification('success', 'Soal berhasil dikirim ke Google Form!');
+                        } else {
+                            progressStatus.textContent = 'Proses gagal!';
+                            showNotification('error', data.error || 'Gagal mengirim soal ke Google Form. Silakan coba lagi.', true);
+                        }
+                        
+                        // Reset after delay
+                        setTimeout(() => {
+                            progressContainer.classList.add('hidden');
+                            submitButton.disabled = false;
+                            progressBar.style.width = '0%';
+                            progressPercentage.textContent = '0%';
+                        }, 3000);
+                    }
+                }, 200);
+                
+            } catch (error) {
+                console.error('Submit error:', error);
+                progressStatus.textContent = 'Proses gagal!';
+                showNotification('error', 'Terjadi kesalahan saat mengirim soal ke Google Form.', true);
+                
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    submitButton.disabled = false;
+                    progressBar.style.width = '0%';
+                    progressPercentage.textContent = '0%';
+                }, 3000);
+            }
+        });
+        
+        // Notification System
+        function showNotification(type, message, showReportButton = false) {
+            const notification = document.createElement('div');
+            notification.className = `notification p-4 rounded-lg shadow-lg max-w-xs sm:max-w-md ${
+                type === 'success' ? 'bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-200' : 
+                type === 'error' ? 'bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-200' : 
+                'bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+            }`;
+            
+            let icon = '';
+            if (type === 'success') icon = 'fa-check-circle';
+            else if (type === 'error') icon = 'fa-exclamation-circle';
+            else icon = 'fa-info-circle';
+            
+            notification.innerHTML = `
+                <div class="flex items-start">
+                    <i class="fas ${icon} mt-0.5 mr-3 text-lg"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">${message}</p>
+                        ${showReportButton ? `
+                            <button class="mt-2 text-sm font-medium underline">
+                                Laporkan ke Owner
+                            </button>
+                        ` : ''}
+                    </div>
+                    <button class="ml-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners
+            const closeBtn = notification.querySelector('.fa-times').parentElement;
+            closeBtn.addEventListener('click', () => {
+                notification.remove();
+            });
+            
+            if (showReportButton) {
+                const reportBtn = notification.querySelector('button:not(.fa-times)');
+                reportBtn.addEventListener('click', () => {
+                    showNotification('info', 'Laporan telah dikirim ke owner. Terima kasih!');
+                    notification.remove();
+                });
+            }
+            
+            notificationContainer.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
