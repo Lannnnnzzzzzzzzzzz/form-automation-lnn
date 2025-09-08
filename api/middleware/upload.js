@@ -6,7 +6,7 @@ const storage = multer.memoryStorage();
 // File filter to accept only specific file types
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['.pdf', '.doc', '.docx', '.txt'];
-  const ext = path.extname(file.originalname).toLowerCase();
+  const ext = file.originalname.split('.').pop().toLowerCase();
   
   if (allowedTypes.includes(ext)) {
     cb(null, true);
