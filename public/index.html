@@ -144,9 +144,14 @@
                     </h2>
                     <div class="flex items-center mt-2 sm:mt-0">
                         <span class="text-sm text-gray-600 dark:text-gray-300 mr-3">Total: <span id="question-count" class="font-medium text-primary">0</span> soal</span>
-                        <button id="parse-button" class="btn px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition flex items-center">
-                            <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>Parse Ulang
-                        </button>
+                        <div class="flex gap-2">
+                            <button id="parse-button" class="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition flex items-center">
+                                <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>Parse Ulang
+                            </button>
+                            <button id="debug-button" class="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center">
+                                <i class="fas fa-bug mr-1 sm:mr-2"></i>Debug Info
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div id="preview-container" class="preview-container border border-gray-200 dark:border-gray-600 rounded-lg p-4 sm:p-5 overflow-y-auto bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300">
@@ -209,6 +214,7 @@
         const questionCount = document.getElementById('question-count');
         const previewContainer = document.getElementById('preview-container');
         const parseButton = document.getElementById('parse-button');
+        const debugButton = document.getElementById('debug-button');
         const submitButton = document.getElementById('submit-button');
         const progressContainer = document.getElementById('progress-container');
         const progressBar = document.getElementById('progress-bar');
@@ -338,6 +344,7 @@
             if (!selectedFile) return;
             
             showNotification('info', 'Memproses file...');
+            console.log('Memproses file:', selectedFile.name);
             
             const formData = new FormData();
             formData.append('file', selectedFile);
@@ -348,13 +355,19 @@
                     body: formData
                 });
                 
+                console.log('Response status:', response.status);
+                
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (data.success) {
                     parsedQuestions = data.questions;
+                    console.log('Parsed questions:', parsedQuestions);
+                    console.log('Question count:', data.count);
                     displayPreview(parsedQuestions);
                     showNotification('success', 'File berhasil diproses!');
                 } else {
+                    console.error('Parsing failed:', data.error);
                     showNotification('error', data.error || 'Gagal memproses file.');
                 }
             } catch (error) {
@@ -364,7 +377,11 @@
         }
         
         function displayPreview(questions) {
-            questionCount.textContent = data.count;
+            console.log('Displaying preview for', questions.length, 'questions');
+            const questionCount = questions.filter(q => q.includes('?')).length;
+            console.log('Questions with ?:', questionCount);
+            
+            document.getElementById('question-count').textContent = questionCount;
             previewContainer.textContent = questions.join('\n');
             previewSection.classList.remove('hidden');
         }
@@ -373,6 +390,19 @@
             if (selectedFile) {
                 parseFile();
             }
+        });
+        
+        // Event listener untuk tombol debug
+        debugButton.addEventListener('click', () => {
+            console.log('=== DEBUG INFORMATION ===');
+            console.log('Selected file:', selectedFile);
+            console.log('Parsed questions:', parsedQuestions);
+            console.log('Question count:', parsedQuestions.filter(q => q.includes('?')).length);
+            console.log('Form ID:', formIdInput.value);
+            console.log('Answer format:', document.querySelector('input[name="answer-format"]:checked')?.value);
+            console.log('========================');
+            
+            alert('Informasi debug telah dicetak ke console. Buka console browser (F12) untuk melihat detail.');
         });
         
         // Submit Handling
@@ -393,8 +423,13 @@
             // Update input field dengan Form ID yang sudah diekstrak
             formIdInput.value = formId;
             
+            console.log('Submitting with:');
+            console.log('- Form ID:', formId);
+            console.log('- Questions count:', parsedQuestions.length);
+            console.log('- Questions with ?:', parsedQuestions.filter(q => q.includes('?')).length);
+            
             if (parsedQuestions.length === 0) {
-                showNotification('error', 'Tidak ada soal yang terdeteksi. Silakan upload ulang file.');
+                showNotification('error', 'Tidak ada soal yang terdeteksi. Silakan upload ulang file.', true);
                 return;
             }
             
@@ -406,6 +441,12 @@
             submitButton.disabled = true;
             
             try {
+                console.log('Sending to API:', {
+                    formId,
+                    questions: parsedQuestions,
+                    answerFormat
+                });
+                
                 const response = await fetch('/api/forms', {
                     method: 'POST',
                     headers: {
@@ -418,7 +459,10 @@
                     })
                 });
                 
+                console.log('Forms API response status:', response.status);
+                
                 const data = await response.json();
+                console.log('Forms API response:', data);
                 
                 // Simulate progress completion
                 let progress = 0;
