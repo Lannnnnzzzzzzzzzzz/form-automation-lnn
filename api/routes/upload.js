@@ -16,13 +16,13 @@ router.post('/', upload.single('file'), handleUploadError, async (req, res) => {
     console.log('File details:', {
       originalname: req.file.originalname,
       mimetype: req.file.mimetype,
-      size: req.file.size,
-      bufferLength: req.file.buffer.length
+      size: req.file.size
     });
 
     // Parse file from memory buffer
     const questions = await parser.parseFile(req.file.buffer, req.file.originalname);
     
+    // Simple count: just count lines with questions marks
     const questionCount = questions.filter(q => q.includes('?')).length;
     console.log(`Successfully parsed ${questionCount} questions`);
     
