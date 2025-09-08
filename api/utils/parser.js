@@ -1,39 +1,35 @@
-
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
-const fs = require('fs');
 
-async function parseFile(filePath) {
-  const ext = filePath.split('.').pop().toLowerCase();
+async function parseFile(fileBuffer, originalName) {
+  const ext = originalName.split('.').pop().toLowerCase();
   
   switch (ext) {
     case 'pdf':
-      return parsePdf(filePath);
+      return parsePdf(fileBuffer);
     case 'docx':
-      return parseDocx(filePath);
+      return parseDocx(fileBuffer);
     case 'doc':
-      return parseDocx(filePath); // Note: .doc might not work well with mammoth
+      return parseDocx(fileBuffer); // Note: .doc might not work well with mammoth
     case 'txt':
-      return parseTxt(filePath);
+      return parseTxt(fileBuffer);
     default:
       throw new Error('Unsupported file format');
   }
 }
 
-async function parsePdf(filePath) {
-  const dataBuffer = fs.readFileSync(filePath);
-  const data = await pdf(dataBuffer);
+async function parsePdf(buffer) {
+  const data = await pdf(buffer);
   return parseTextContent(data.text);
 }
 
-async function parseDocx(filePath) {
-  const buffer = fs.readFileSync(filePath);
+async function parseDocx(buffer) {
   const result = await mammoth.extractRawText({ buffer });
   return parseTextContent(result.value);
 }
 
-function parseTxt(filePath) {
-  const content = fs.readFileSync(filePath, 'utf8');
+function parseTxt(buffer) {
+  const content = buffer.toString('utf8');
   return parseTextContent(content);
 }
 
