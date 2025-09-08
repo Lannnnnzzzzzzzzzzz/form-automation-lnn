@@ -11,10 +11,5 @@
       "src": "/(.*)",
       "dest": "api/index.js"
     }
-  ],
-  "env": {
-    "GOOGLE_CLIENT_EMAIL": "@google_client_email",
-    "GOOGLE_PRIVATE_KEY": "@google_private_key",
-    "GOOGLE_FORM_ID": "@google_form_id"
-  }
+  ]
 }
