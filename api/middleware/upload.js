@@ -1,26 +1,7 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-// Configure storage for uploaded files
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../uploads');
-    
-    // Create uploads directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Create unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-  }
-});
+// Use memory storage instead of disk storage
+const storage = multer.memoryStorage();
 
 // File filter to accept only specific file types
 const fileFilter = (req, file, cb) => {
